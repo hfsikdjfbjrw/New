@@ -1,0 +1,101 @@
+<html>
+  <body>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+    <br>
+    <label for="overlayImage">Upload Overlay Image:</label>
+    <input type="file" id="overlayImage" accept="image/*">
+    <br>
+    <label for="textInput">Enter Text:</label>
+    <input type="text" id="textInput">
+    <br>
+    <button id="downloadButton">Download Image</button>
+
+    <script>
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const mainImage = new Image();
+      let mainImageLoaded = false;
+
+      // Set main image source
+      mainImage.src = "x.png"; // Ensure "x.png" exists in the same folder
+       // Ensure no CORS issues
+      let overlayImage = new Image();
+      let userText = "";
+
+      // Load and draw the main image
+      mainImage.onload = function () {
+        mainImageLoaded = true;
+        drawCanvas();
+      };
+
+      mainImage.onerror = function () {
+        alert("Error: Main image 'x.png' not found. Ensure the path is correct.");
+      };
+
+      // Event: Overlay image upload
+      document.getElementById("overlayImage").addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            overlayImage.onload = function () {
+              drawCanvas();
+            };
+            overlayImage.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Event: Text input
+      document.getElementById("textInput").addEventListener("input", function (e) {
+        userText = e.target.value;
+        drawCanvas();
+      });
+
+      // Draw everything on canvas
+      function drawCanvas() {
+        if (!mainImageLoaded) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+
+        if (overlayImage.src) {
+          ctx.drawImage(overlayImage, 335, 350, 140, 140);
+        }
+
+        addText();
+      }
+
+      function addText() {
+        ctx.font = "30px Arial";
+        ctx.fillStyle = "white";
+        ctx.fillText(userText, 50, 475);
+      }
+
+      // Download functionality
+      document.getElementById("downloadButton").addEventListener("click", function () {
+  if (!mainImageLoaded) {
+    alert("Main image is not loaded yet.");
+    return;
+  }
+
+  // Use toBlob to download the image
+  canvas.toBlob(function (blob) {
+    if (!blob) {
+      alert("Failed to create image blob.");
+      return;
+    }
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = "edited-image.png"; // Set the file name
+    link.click();
+
+    // Clean up
+    URL.revokeObjectURL(url);
+  }, "image/png");
+});
+    </script>
+  </body>
+</html>
